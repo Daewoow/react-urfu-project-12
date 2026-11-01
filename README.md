@@ -35,4 +35,4 @@ make start
 
 ## Демо
 
-Ссылка на приложение в Render: <http://192.168.3.4:5001/>
+Ссылка на приложение в Render: <https://react-urfu-project-12-71w7.onrender.com>
