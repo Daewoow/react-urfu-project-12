@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:5001',
       '/socket.io': {
-        target: 'ws://localhost:5001',
+        target: 'ws://localhost:10000',
         ws: true,
       },
     },
