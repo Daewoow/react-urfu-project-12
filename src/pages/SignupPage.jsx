@@ -17,6 +17,7 @@ import {
   useForm,
 } from '@mantine/form'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/chatApi.js'
 import AppHeader from '../components/AppHeader.jsx'
@@ -33,6 +34,7 @@ const combineValidators = (...validators) => (value, values, path) => {
 }
 
 const SignupPage = () => {
+  const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [requestError, setRequestError] = useState(null)
   const token = useAuthStore((state) => state.token)
@@ -46,16 +48,16 @@ const SignupPage = () => {
     },
     validate: {
       username: combineValidators(
-        isNotEmpty('Обязательное поле'),
-        hasLength({ min: 3, max: 20 }, 'От 3 до 20 символов'),
+        isNotEmpty(t('validation.required')),
+        hasLength({ min: 3, max: 20 }, t('validation.usernameLength')),
       ),
       password: combineValidators(
-        isNotEmpty('Обязательное поле'),
-        hasLength({ min: 6 }, 'Не менее 6 символов'),
+        isNotEmpty(t('validation.required')),
+        hasLength({ min: 6 }, t('validation.passwordLength')),
       ),
       passwordConfirmation: combineValidators(
-        isNotEmpty('Обязательное поле'),
-        matchesField('password', 'Пароли должны совпадать'),
+        isNotEmpty(t('validation.required')),
+        matchesField('password', t('validation.passwordsMatch')),
       ),
     },
   })
@@ -80,12 +82,10 @@ const SignupPage = () => {
       if (error.status === 409) {
         form.setFieldError(
           'username',
-          'Пользователь с таким именем уже существует',
+          t('auth.signup.usernameConflict'),
         )
       } else {
-        setRequestError(
-          'Не удалось зарегистрироваться. Проверьте подключение и попробуйте ещё раз',
-        )
+        setRequestError(t('auth.signup.requestError'))
       }
     } finally {
       setIsSubmitting(false)
@@ -102,18 +102,18 @@ const SignupPage = () => {
       <Center mih="calc(100vh - 60px)" px="md" py="xl">
         <Paper w="100%" maw={440} p="xl" radius="md" shadow="md" withBorder>
           <Title order={1} ta="center" mb="lg">
-            Регистрация
+            {t('auth.signup.title')}
           </Title>
           <form onSubmit={form.onSubmit(handleSubmit)}>
             <Stack>
               {requestError && (
-                <Alert color="red" title="Ошибка регистрации">
+                <Alert color="red" title={t('auth.signup.errorTitle')}>
                   {requestError}
                 </Alert>
               )}
               <TextInput
-                label="Имя пользователя"
-                placeholder="От 3 до 20 символов"
+                label={t('auth.username.label')}
+                placeholder={t('auth.signup.usernamePlaceholder')}
                 autoComplete="username"
                 maxLength={20}
                 required
@@ -122,28 +122,28 @@ const SignupPage = () => {
                 {...form.getInputProps('username')}
               />
               <PasswordInput
-                label="Пароль"
-                placeholder="Не менее 6 символов"
+                label={t('auth.password.label')}
+                placeholder={t('auth.signup.passwordPlaceholder')}
                 autoComplete="new-password"
                 required
                 disabled={isSubmitting}
                 {...form.getInputProps('password')}
               />
               <PasswordInput
-                label="Подтверждение пароля"
-                placeholder="Повторите пароль"
+                label={t('auth.signup.passwordConfirmationLabel')}
+                placeholder={t('auth.signup.passwordConfirmationPlaceholder')}
                 autoComplete="new-password"
                 required
                 disabled={isSubmitting}
                 {...form.getInputProps('passwordConfirmation')}
               />
               <Button type="submit" loading={isSubmitting} fullWidth>
-                Зарегистрироваться
+                {t('auth.signup.submit')}
               </Button>
               <Text ta="center" size="sm">
-                Уже есть аккаунт?{' '}
+                {t('auth.signup.hasAccount')}{' '}
                 <Anchor component={Link} to="/login">
-                  Войти
+                  {t('auth.signup.loginLink')}
                 </Anchor>
               </Text>
             </Stack>

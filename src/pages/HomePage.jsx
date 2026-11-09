@@ -21,6 +21,7 @@ import {
 import { useForm } from '@mantine/form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createMessage, getChannels, getMessages } from '../api/chatApi.js'
 import AppHeader from '../components/AppHeader.jsx'
 import ChannelModals from '../components/ChannelModals.jsx'
@@ -35,6 +36,7 @@ import {
 const EMPTY_LIST = []
 
 const HomePage = ({ socket }) => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
   const token = useAuthStore((state) => state.token)
@@ -62,7 +64,7 @@ const HomePage = ({ socket }) => {
     },
     validate: {
       body: (value) =>
-        value.trim().length === 0 ? 'Введите сообщение' : null,
+        value.trim().length === 0 ? t('validation.messageRequired') : null,
     },
   })
   const createMessageMutation = useMutation({
@@ -156,7 +158,7 @@ const HomePage = ({ socket }) => {
       <>
         <AppHeader />
         <Center mih="calc(100vh - 60px)">
-          <Loader aria-label="Загрузка чата" />
+          <Loader aria-label={t('chat.loading')} />
         </Center>
       </>
     )
@@ -167,9 +169,9 @@ const HomePage = ({ socket }) => {
       <>
         <AppHeader />
         <Center mih="calc(100vh - 60px)" px="md">
-          <Alert color="red" title="Не удалось загрузить чат" maw={520}>
+          <Alert color="red" title={t('chat.loadErrorTitle')} maw={520}>
             <Stack gap="sm">
-              <Text>Проверьте подключение и попробуйте ещё раз.</Text>
+              <Text>{t('chat.loadErrorText')}</Text>
               <Button
                 variant="light"
                 onClick={() => {
@@ -177,7 +179,7 @@ const HomePage = ({ socket }) => {
                   messagesQuery.refetch()
                 }}
               >
-                Повторить
+                {t('common.retry')}
               </Button>
             </Stack>
           </Alert>
@@ -203,13 +205,13 @@ const HomePage = ({ socket }) => {
       <AppShell.Navbar p="md">
         <Group justify="space-between" mb="sm">
           <Group gap="xs">
-            <Text fw={700}>Каналы</Text>
+            <Text fw={700}>{t('channels.title')}</Text>
             <Badge variant="light">{channels.length}</Badge>
           </Group>
           <ActionIcon
             variant="light"
-            aria-label="Добавить канал"
-            title="Добавить канал"
+            aria-label={t('channels.addAction')}
+            title={t('channels.addAction')}
             onClick={() => openModal('createChannel')}
           >
             +
@@ -221,7 +223,7 @@ const HomePage = ({ socket }) => {
             {channels.map((channel) => {
               const channelLink = (
                 <NavLink
-                  label={`# ${channel.name}`}
+                  label={t('channels.label', { name: channel.name })}
                   active={channel.id === currentChannelId}
                   onClick={() => setCurrentChannelId(channel.id)}
                   styles={{
@@ -247,8 +249,12 @@ const HomePage = ({ socket }) => {
                     <Menu.Target>
                       <ActionIcon
                         variant="subtle"
-                        aria-label={`Управление каналом ${channel.name}`}
-                        title="Управление каналом"
+                        aria-label={t('channels.manageAction', {
+                          name: channel.name,
+                        })}
+                        title={t('channels.manageAction', {
+                          name: channel.name,
+                        })}
                       >
                         ⋮
                       </ActionIcon>
@@ -259,7 +265,7 @@ const HomePage = ({ socket }) => {
                           openModal('renameChannel', channel.id)
                         }
                       >
-                        Переименовать
+                        {t('channels.renameAction')}
                       </Menu.Item>
                       <Menu.Item
                         color="red"
@@ -267,7 +273,7 @@ const HomePage = ({ socket }) => {
                           openModal('deleteChannel', channel.id)
                         }
                       >
-                        Удалить
+                        {t('channels.deleteAction')}
                       </Menu.Item>
                     </Menu.Dropdown>
                   </Menu>
@@ -281,14 +287,18 @@ const HomePage = ({ socket }) => {
       <AppShell.Main>
         <Stack h="calc(100vh - 92px)" gap="md">
           {!isSocketConnected && (
-            <Alert color="yellow" title="Соединение потеряно">
-              Новые сообщения появятся после восстановления связи.
+            <Alert color="yellow" title={t('chat.connectionLostTitle')}>
+              {t('chat.connectionLostText')}
             </Alert>
           )}
           <Box>
-            <Title order={3}># {currentChannel?.name ?? 'Канал'}</Title>
+            <Title order={3}>
+              {t('channels.label', {
+                name: currentChannel?.name ?? t('chat.channelFallback'),
+              })}
+            </Title>
             <Text size="sm" c="dimmed">
-              {currentMessages.length} сообщений
+              {t('chat.messageCount', { count: currentMessages.length })}
             </Text>
           </Box>
           <Divider />
@@ -296,7 +306,7 @@ const HomePage = ({ socket }) => {
           <ScrollArea flex={1}>
             {currentMessages.length === 0 ? (
               <Center h="100%" mih={240}>
-                <Text c="dimmed">В этом канале пока нет сообщений</Text>
+                <Text c="dimmed">{t('chat.emptyChannel')}</Text>
               </Center>
             ) : (
               <Stack gap="sm" pr="sm">
@@ -319,15 +329,14 @@ const HomePage = ({ socket }) => {
               {createMessageMutation.isError &&
                 createMessageMutation.error?.status !== 401 && (
                   <Alert color="red">
-                    Не удалось отправить сообщение. Текст сохранён — попробуйте
-                    ещё раз.
+                    {t('chat.sendError')}
                   </Alert>
                 )}
               <Group align="flex-end" wrap="nowrap">
                 <TextInput
-                  label="Новое сообщение"
-                  placeholder="Введите сообщение"
-                  aria-label="Новое сообщение"
+                  label={t('chat.newMessageLabel')}
+                  placeholder={t('chat.newMessagePlaceholder')}
+                  aria-label={t('chat.newMessageLabel')}
                   flex={1}
                   disabled={!currentChannel || createMessageMutation.isPending}
                   {...messageForm.getInputProps('body')}
@@ -337,7 +346,7 @@ const HomePage = ({ socket }) => {
                   loading={createMessageMutation.isPending}
                   disabled={!currentChannel}
                 >
-                  Отправить
+                  {t('chat.send')}
                 </Button>
               </Group>
             </Stack>

@@ -9,6 +9,7 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import {
   createChannel,
   removeChannel,
@@ -21,15 +22,20 @@ import {
   upsertChannelInCache,
 } from '../utils/chatCache.js'
 
-const validateChannelName = (value, channels, excludedChannelId = null) => {
+const validateChannelName = (
+  value,
+  channels,
+  t,
+  excludedChannelId = null,
+) => {
   const name = value.trim()
 
   if (name.length < 3) {
-    return 'От 3 до 20 символов'
+    return t('channels.validation.length')
   }
 
   if (name.length > 20) {
-    return 'Не более 20 символов'
+    return t('channels.validation.maxLength')
   }
 
   const nameExists = channels.some(
@@ -38,14 +44,17 @@ const validateChannelName = (value, channels, excludedChannelId = null) => {
       channel.name.trim().toLowerCase() === name.toLowerCase(),
   )
 
-  return nameExists ? 'Канал с таким именем уже существует' : null
+  return nameExists ? t('channels.validation.unique') : null
 }
 
-const MutationError = () => (
-  <Alert color="red">Не удалось выполнить запрос. Попробуйте ещё раз.</Alert>
-)
+const MutationError = () => {
+  const { t } = useTranslation()
+
+  return <Alert color="red">{t('common.requestError')}</Alert>
+}
 
 const CreateChannelModal = ({ channels }) => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const token = useAuthStore((state) => state.token)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
@@ -56,7 +65,7 @@ const CreateChannelModal = ({ channels }) => {
   const form = useForm({
     initialValues: { name: '' },
     validate: {
-      name: (value) => validateChannelName(value, channels),
+      name: (value) => validateChannelName(value, channels, t),
     },
   })
   const mutation = useMutation({
@@ -82,7 +91,7 @@ const CreateChannelModal = ({ channels }) => {
     <Modal
       opened
       onClose={handleClose}
-      title="Добавить канал"
+      title={t('channels.create.title')}
       centered
       closeOnClickOutside={!mutation.isPending}
       closeOnEscape={!mutation.isPending}
@@ -97,8 +106,8 @@ const CreateChannelModal = ({ channels }) => {
             <MutationError />
           )}
           <TextInput
-            label="Имя канала"
-            placeholder="Новый канал"
+            label={t('channels.nameLabel')}
+            placeholder={t('channels.namePlaceholder')}
             maxLength={20}
             autoFocus
             disabled={mutation.isPending}
@@ -111,10 +120,10 @@ const CreateChannelModal = ({ channels }) => {
               onClick={handleClose}
               disabled={mutation.isPending}
             >
-              Отмена
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={mutation.isPending}>
-              Добавить
+              {t('channels.create.submit')}
             </Button>
           </Group>
         </Stack>
@@ -124,6 +133,7 @@ const CreateChannelModal = ({ channels }) => {
 }
 
 const RenameChannelModal = ({ channel, channels }) => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const token = useAuthStore((state) => state.token)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
@@ -131,7 +141,7 @@ const RenameChannelModal = ({ channel, channels }) => {
   const form = useForm({
     initialValues: { name: channel.name },
     validate: {
-      name: (value) => validateChannelName(value, channels, channel.id),
+      name: (value) => validateChannelName(value, channels, t, channel.id),
     },
   })
   const mutation = useMutation({
@@ -156,7 +166,7 @@ const RenameChannelModal = ({ channel, channels }) => {
     <Modal
       opened
       onClose={handleClose}
-      title="Переименовать канал"
+      title={t('channels.rename.title')}
       centered
       closeOnClickOutside={!mutation.isPending}
       closeOnEscape={!mutation.isPending}
@@ -171,7 +181,7 @@ const RenameChannelModal = ({ channel, channels }) => {
             <MutationError />
           )}
           <TextInput
-            label="Имя канала"
+            label={t('channels.nameLabel')}
             maxLength={20}
             autoFocus
             disabled={mutation.isPending}
@@ -184,10 +194,10 @@ const RenameChannelModal = ({ channel, channels }) => {
               onClick={handleClose}
               disabled={mutation.isPending}
             >
-              Отмена
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={mutation.isPending}>
-              Переименовать
+              {t('channels.rename.submit')}
             </Button>
           </Group>
         </Stack>
@@ -197,6 +207,7 @@ const RenameChannelModal = ({ channel, channels }) => {
 }
 
 const DeleteChannelModal = ({ channel }) => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const token = useAuthStore((state) => state.token)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
@@ -223,7 +234,7 @@ const DeleteChannelModal = ({ channel }) => {
     <Modal
       opened
       onClose={handleClose}
-      title="Удалить канал"
+      title={t('channels.delete.title')}
       centered
       closeOnClickOutside={!mutation.isPending}
       closeOnEscape={!mutation.isPending}
@@ -238,10 +249,7 @@ const DeleteChannelModal = ({ channel }) => {
           {mutation.isError && mutation.error?.status !== 401 && (
             <MutationError />
           )}
-          <Text>
-            Удалить канал <strong># {channel.name}</strong>? Все его сообщения
-            также будут удалены.
-          </Text>
+          <Text>{t('channels.delete.confirmation', { name: channel.name })}</Text>
           <Group justify="flex-end">
             <Button
               type="button"
@@ -249,7 +257,7 @@ const DeleteChannelModal = ({ channel }) => {
               onClick={handleClose}
               disabled={mutation.isPending}
             >
-              Отмена
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -257,7 +265,7 @@ const DeleteChannelModal = ({ channel }) => {
               loading={mutation.isPending}
               autoFocus
             >
-              Удалить
+              {t('channels.delete.submit')}
             </Button>
           </Group>
         </Stack>

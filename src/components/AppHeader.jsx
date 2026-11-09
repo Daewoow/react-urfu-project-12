@@ -1,8 +1,10 @@
 import { AppShell, Button, Group, Paper, Text } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import useAuthStore from '../stores/authStore.js'
 
 const HeaderContent = () => {
+  const { t } = useTranslation()
   const token = useAuthStore((state) => state.token)
   const username = useAuthStore((state) => state.username)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
@@ -17,7 +19,7 @@ const HeaderContent = () => {
         c="inherit"
         style={{ textDecoration: 'none' }}
       >
-        Hexlet Chat
+        {t('app.title')}
       </Text>
       {token && (
         <Group gap="sm" wrap="nowrap">
@@ -25,7 +27,7 @@ const HeaderContent = () => {
             {username}
           </Text>
           <Button variant="subtle" onClick={clearCredentials}>
-            Выйти
+            {t('auth.logout')}
           </Button>
         </Group>
       )}
