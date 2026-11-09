@@ -22,6 +22,22 @@ const authorizedRequest = async (path, token, options = {}) => {
   return response.json()
 }
 
+export const registerUser = async (credentials) => {
+  const response = await fetch('/api/v1/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(credentials),
+  })
+
+  if (!response.ok) {
+    throw new ApiError(`Registration failed with status ${response.status}`, response.status)
+  }
+
+  return response.json()
+}
+
 export const getChannels = (token) =>
   authorizedRequest('/api/v1/channels', token)
 

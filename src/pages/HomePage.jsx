@@ -22,6 +22,7 @@ import { useForm } from '@mantine/form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createMessage, getChannels, getMessages } from '../api/chatApi.js'
+import AppHeader from '../components/AppHeader.jsx'
 import ChannelModals from '../components/ChannelModals.jsx'
 import useAuthStore from '../stores/authStore.js'
 import useChatUiStore from '../stores/chatUiStore.js'
@@ -152,30 +153,36 @@ const HomePage = ({ socket }) => {
 
   if (channelsQuery.isPending || messagesQuery.isPending) {
     return (
-      <Center mih="100vh">
-        <Loader aria-label="Загрузка чата" />
-      </Center>
+      <>
+        <AppHeader />
+        <Center mih="calc(100vh - 60px)">
+          <Loader aria-label="Загрузка чата" />
+        </Center>
+      </>
     )
   }
 
   if (channelsQuery.isError || messagesQuery.isError) {
     return (
-      <Center mih="100vh" px="md">
-        <Alert color="red" title="Не удалось загрузить чат" maw={520}>
-          <Stack gap="sm">
-            <Text>Проверьте подключение и попробуйте ещё раз.</Text>
-            <Button
-              variant="light"
-              onClick={() => {
-                channelsQuery.refetch()
-                messagesQuery.refetch()
-              }}
-            >
-              Повторить
-            </Button>
-          </Stack>
-        </Alert>
-      </Center>
+      <>
+        <AppHeader />
+        <Center mih="calc(100vh - 60px)" px="md">
+          <Alert color="red" title="Не удалось загрузить чат" maw={520}>
+            <Stack gap="sm">
+              <Text>Проверьте подключение и попробуйте ещё раз.</Text>
+              <Button
+                variant="light"
+                onClick={() => {
+                  channelsQuery.refetch()
+                  messagesQuery.refetch()
+                }}
+              >
+                Повторить
+              </Button>
+            </Stack>
+          </Alert>
+        </Center>
+      </>
     )
   }
 
@@ -191,19 +198,7 @@ const HomePage = ({ socket }) => {
       navbar={{ width: 260, breakpoint: 'sm' }}
       padding="md"
     >
-      <AppShell.Header px="md">
-        <Group h="100%" justify="space-between">
-          <Title order={2}>Hexlet Chat</Title>
-          <Group gap="sm">
-            <Text size="sm" fw={500}>
-              {username}
-            </Text>
-            <Button variant="subtle" onClick={clearCredentials}>
-              Выйти
-            </Button>
-          </Group>
-        </Group>
-      </AppShell.Header>
+      <AppHeader withinAppShell />
 
       <AppShell.Navbar p="md">
         <Group justify="space-between" mb="sm">

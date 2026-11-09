@@ -1,16 +1,19 @@
 import {
   Alert,
+  Anchor,
   Button,
   Center,
   Paper,
   PasswordInput,
   Stack,
+  Text,
   TextInput,
   Title,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import AppHeader from '../components/AppHeader.jsx'
 import useAuthStore from '../stores/authStore.js'
 
 const LoginPage = () => {
@@ -58,7 +61,9 @@ const LoginPage = () => {
       setCredentials(credentials)
       navigate(location.state?.from?.pathname ?? '/', { replace: true })
     } catch {
-      setAuthError('Не удалось войти. Проверьте подключение и попробуйте ещё раз')
+      setAuthError(
+        'Не удалось войти. Проверьте подключение и попробуйте ещё раз',
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -69,40 +74,52 @@ const LoginPage = () => {
   }
 
   return (
-    <Center mih="100vh" px="md">
-      <Paper w="100%" maw={420} p="xl" radius="md" shadow="md" withBorder>
-        <Title order={1} ta="center" mb="lg">
-          Войти
-        </Title>
+    <>
+      <AppHeader />
+      <Center mih="calc(100vh - 60px)" px="md" py="xl">
+        <Paper w="100%" maw={420} p="xl" radius="md" shadow="md" withBorder>
+          <Title order={1} ta="center" mb="lg">
+            Войти
+          </Title>
 
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
-            {authError && (
-              <Alert color="red" title="Ошибка авторизации">
-                {authError}
-              </Alert>
-            )}
-            <TextInput
-              label="Имя пользователя"
-              placeholder="Введите имя пользователя"
-              autoComplete="username"
-              required
-              {...form.getInputProps('username')}
-            />
-            <PasswordInput
-              label="Пароль"
-              placeholder="Введите пароль"
-              autoComplete="current-password"
-              required
-              {...form.getInputProps('password')}
-            />
-            <Button type="submit" loading={isSubmitting} fullWidth>
-              Войти
-            </Button>
-          </Stack>
-        </form>
-      </Paper>
-    </Center>
+          <form onSubmit={form.onSubmit(handleSubmit)}>
+            <Stack>
+              {authError && (
+                <Alert color="red" title="Ошибка авторизации">
+                  {authError}
+                </Alert>
+              )}
+              <TextInput
+                label="Имя пользователя"
+                placeholder="Введите имя пользователя"
+                autoComplete="username"
+                required
+                autoFocus
+                disabled={isSubmitting}
+                {...form.getInputProps('username')}
+              />
+              <PasswordInput
+                label="Пароль"
+                placeholder="Введите пароль"
+                autoComplete="current-password"
+                required
+                disabled={isSubmitting}
+                {...form.getInputProps('password')}
+              />
+              <Button type="submit" loading={isSubmitting} fullWidth>
+                Войти
+              </Button>
+              <Text ta="center" size="sm">
+                Нет аккаунта?{' '}
+                <Anchor component={Link} to="/signup">
+                  Регистрация
+                </Anchor>
+              </Text>
+            </Stack>
+          </form>
+        </Paper>
+      </Center>
+    </>
   )
 }
 
