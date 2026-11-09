@@ -25,6 +25,29 @@ const authorizedRequest = async (path, token, options = {}) => {
 export const getChannels = (token) =>
   authorizedRequest('/api/v1/channels', token)
 
+export const createChannel = (token, channel) =>
+  authorizedRequest('/api/v1/channels', token, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(channel),
+  })
+
+export const renameChannel = (token, channelId, channel) =>
+  authorizedRequest(`/api/v1/channels/${channelId}`, token, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(channel),
+  })
+
+export const removeChannel = (token, channelId) =>
+  authorizedRequest(`/api/v1/channels/${channelId}`, token, {
+    method: 'DELETE',
+  })
+
 export const getMessages = (token) =>
   authorizedRequest('/api/v1/messages', token)
 

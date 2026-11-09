@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Alert,
   AppShell,
   Badge,
@@ -8,6 +9,7 @@ import {
   Divider,
   Group,
   Loader,
+  Menu,
   NavLink,
   Paper,
   ScrollArea,
@@ -20,16 +22,16 @@ import { useForm } from '@mantine/form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createMessage, getChannels, getMessages } from '../api/chatApi.js'
+import ChannelModals from '../components/ChannelModals.jsx'
 import useAuthStore from '../stores/authStore.js'
 import useChatUiStore from '../stores/chatUiStore.js'
+import {
+  removeChannelFromCache,
+  upsertChannelInCache,
+  upsertMessageInCache,
+} from '../utils/chatCache.js'
 
 const EMPTY_LIST = []
-
-const addMessageToCache = (messages = EMPTY_LIST, newMessage) => {
-  const messageExists = messages.some(({ id }) => id === newMessage.id)
-
-  return messageExists ? messages : [...messages, newMessage]
-}
 
 const HomePage = ({ socket }) => {
   const queryClient = useQueryClient()
@@ -41,6 +43,7 @@ const HomePage = ({ socket }) => {
   const setCurrentChannelId = useChatUiStore(
     (state) => state.setCurrentChannelId,
   )
+  const openModal = useChatUiStore((state) => state.openModal)
 
   const channelsQuery = useQuery({
     queryKey: ['channels', token],
@@ -69,9 +72,7 @@ const HomePage = ({ socket }) => {
         username,
       }),
     onSuccess: (newMessage) => {
-      queryClient.setQueryData(['messages', token], (messages) =>
-        addMessageToCache(messages, newMessage),
-      )
+      upsertMessageInCache(queryClient, token, newMessage)
       messageForm.reset()
     },
     onError: (error) => {
@@ -111,23 +112,34 @@ const HomePage = ({ socket }) => {
 
   useEffect(() => {
     const handleNewMessage = (newMessage) => {
-      queryClient.setQueryData(['messages', token], (messages) =>
-        addMessageToCache(messages, newMessage),
-      )
+      upsertMessageInCache(queryClient, token, newMessage)
     }
+    const handleNewChannel = (channel) =>
+      upsertChannelInCache(queryClient, token, channel)
+    const handleRenameChannel = (channel) =>
+      upsertChannelInCache(queryClient, token, channel)
+    const handleRemoveChannel = ({ id }) =>
+      removeChannelFromCache(queryClient, token, id)
     const handleConnect = () => {
       setIsSocketConnected(true)
+      queryClient.invalidateQueries({ queryKey: ['channels', token] })
       queryClient.invalidateQueries({ queryKey: ['messages', token] })
     }
     const handleDisconnect = () => setIsSocketConnected(false)
 
     socket.on('newMessage', handleNewMessage)
+    socket.on('newChannel', handleNewChannel)
+    socket.on('renameChannel', handleRenameChannel)
+    socket.on('removeChannel', handleRemoveChannel)
     socket.on('connect', handleConnect)
     socket.on('disconnect', handleDisconnect)
     socket.on('connect_error', handleDisconnect)
 
     return () => {
       socket.off('newMessage', handleNewMessage)
+      socket.off('newChannel', handleNewChannel)
+      socket.off('renameChannel', handleRenameChannel)
+      socket.off('removeChannel', handleRemoveChannel)
       socket.off('connect', handleConnect)
       socket.off('disconnect', handleDisconnect)
       socket.off('connect_error', handleDisconnect)
@@ -173,7 +185,8 @@ const HomePage = ({ socket }) => {
   )
 
   return (
-    <AppShell
+    <>
+      <AppShell
       header={{ height: 60 }}
       navbar={{ width: 260, breakpoint: 'sm' }}
       padding="md"
@@ -194,20 +207,78 @@ const HomePage = ({ socket }) => {
 
       <AppShell.Navbar p="md">
         <Group justify="space-between" mb="sm">
-          <Text fw={700}>Каналы</Text>
-          <Badge variant="light">{channels.length}</Badge>
+          <Group gap="xs">
+            <Text fw={700}>Каналы</Text>
+            <Badge variant="light">{channels.length}</Badge>
+          </Group>
+          <ActionIcon
+            variant="light"
+            aria-label="Добавить канал"
+            title="Добавить канал"
+            onClick={() => openModal('createChannel')}
+          >
+            +
+          </ActionIcon>
         </Group>
         <Divider mb="xs" />
-        <ScrollArea>
+        <ScrollArea flex={1}>
           <Stack gap={4}>
-            {channels.map((channel) => (
-              <NavLink
-                key={channel.id}
-                label={`# ${channel.name}`}
-                active={channel.id === currentChannelId}
-                onClick={() => setCurrentChannelId(channel.id)}
-              />
-            ))}
+            {channels.map((channel) => {
+              const channelLink = (
+                <NavLink
+                  label={`# ${channel.name}`}
+                  active={channel.id === currentChannelId}
+                  onClick={() => setCurrentChannelId(channel.id)}
+                  styles={{
+                    label: {
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    },
+                  }}
+                />
+              )
+
+              if (!channel.removable) {
+                return <Box key={channel.id}>{channelLink}</Box>
+              }
+
+              return (
+                <Group key={channel.id} gap={4} wrap="nowrap">
+                  <Box flex={1} miw={0}>
+                    {channelLink}
+                  </Box>
+                  <Menu position="right-start" withinPortal>
+                    <Menu.Target>
+                      <ActionIcon
+                        variant="subtle"
+                        aria-label={`Управление каналом ${channel.name}`}
+                        title="Управление каналом"
+                      >
+                        ⋮
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        onClick={() =>
+                          openModal('renameChannel', channel.id)
+                        }
+                      >
+                        Переименовать
+                      </Menu.Item>
+                      <Menu.Item
+                        color="red"
+                        onClick={() =>
+                          openModal('deleteChannel', channel.id)
+                        }
+                      >
+                        Удалить
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
+              )
+            })}
           </Stack>
         </ScrollArea>
       </AppShell.Navbar>
@@ -239,7 +310,9 @@ const HomePage = ({ socket }) => {
                     <Text fw={700} size="sm">
                       {message.username}
                     </Text>
-                    <Text>{message.body}</Text>
+                    <Text style={{ overflowWrap: 'anywhere' }}>
+                      {message.body}
+                    </Text>
                   </Paper>
                 ))}
               </Stack>
@@ -276,7 +349,9 @@ const HomePage = ({ socket }) => {
           </form>
         </Stack>
       </AppShell.Main>
-    </AppShell>
+      </AppShell>
+      <ChannelModals channels={channels} />
+    </>
   )
 }
 
