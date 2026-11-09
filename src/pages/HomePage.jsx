@@ -33,6 +33,7 @@ import {
   upsertChannelInCache,
   upsertMessageInCache,
 } from '../utils/chatCache.js'
+import { cleanProfanity } from '../utils/profanity.js'
 
 const EMPTY_LIST = []
 
@@ -238,7 +239,9 @@ const HomePage = ({ socket }) => {
             {channels.map((channel) => {
               const channelLink = (
                 <NavLink
-                  label={t('channels.label', { name: channel.name })}
+                  label={t('channels.label', {
+                    name: cleanProfanity(channel.name),
+                  })}
                   active={channel.id === currentChannelId}
                   onClick={() => setCurrentChannelId(channel.id)}
                   styles={{
@@ -265,10 +268,10 @@ const HomePage = ({ socket }) => {
                       <ActionIcon
                         variant="subtle"
                         aria-label={t('channels.manageAction', {
-                          name: channel.name,
+                          name: cleanProfanity(channel.name),
                         })}
                         title={t('channels.manageAction', {
-                          name: channel.name,
+                          name: cleanProfanity(channel.name),
                         })}
                       >
                         ⋮
@@ -309,7 +312,9 @@ const HomePage = ({ socket }) => {
           <Box>
             <Title order={3}>
               {t('channels.label', {
-                name: currentChannel?.name ?? t('chat.channelFallback'),
+                name: currentChannel
+                  ? cleanProfanity(currentChannel.name)
+                  : t('chat.channelFallback'),
               })}
             </Title>
             <Text size="sm" c="dimmed">
@@ -331,7 +336,7 @@ const HomePage = ({ socket }) => {
                       {message.username}
                     </Text>
                     <Text style={{ overflowWrap: 'anywhere' }}>
-                      {message.body}
+                      {cleanProfanity(message.body)}
                     </Text>
                   </Paper>
                 ))}

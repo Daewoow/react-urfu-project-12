@@ -22,6 +22,7 @@ import {
   removeChannelFromCache,
   upsertChannelInCache,
 } from '../utils/chatCache.js'
+import { cleanProfanity } from '../utils/profanity.js'
 
 const validateChannelName = (
   value,
@@ -29,7 +30,7 @@ const validateChannelName = (
   t,
   excludedChannelId = null,
 ) => {
-  const name = value.trim()
+  const name = cleanProfanity(value.trim())
 
   if (name.length < 3) {
     return t('channels.validation.length')
@@ -42,7 +43,7 @@ const validateChannelName = (
   const nameExists = channels.some(
     (channel) =>
       channel.id !== excludedChannelId &&
-      channel.name.trim().toLowerCase() === name.toLowerCase(),
+      cleanProfanity(channel.name.trim()).toLowerCase() === name.toLowerCase(),
   )
 
   return nameExists ? t('channels.validation.unique') : null
@@ -145,7 +146,7 @@ const RenameChannelModal = ({ channel, channels }) => {
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
   const closeModal = useChatUiStore((state) => state.closeModal)
   const form = useForm({
-    initialValues: { name: channel.name },
+    initialValues: { name: cleanProfanity(channel.name) },
     validate: {
       name: (value) => validateChannelName(value, channels, t, channel.id),
     },
@@ -233,7 +234,9 @@ const DeleteChannelModal = ({ channel }) => {
       notifications.show({
         color: 'green',
         title: t('notifications.successTitle'),
-        message: t('notifications.channelDeleted', { name: channel.name }),
+        message: t('notifications.channelDeleted', {
+          name: cleanProfanity(channel.name),
+        }),
       })
     },
     onError: (error) => {
@@ -267,7 +270,11 @@ const DeleteChannelModal = ({ channel }) => {
           {mutation.isError && mutation.error?.status !== 401 && (
             <MutationError />
           )}
-          <Text>{t('channels.delete.confirmation', { name: channel.name })}</Text>
+          <Text>
+            {t('channels.delete.confirmation', {
+              name: cleanProfanity(channel.name),
+            })}
+          </Text>
           <Group justify="flex-end">
             <Button
               type="button"

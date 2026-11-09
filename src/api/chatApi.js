@@ -1,3 +1,5 @@
+import { cleanProfanity } from '../utils/profanity.js'
+
 class ApiError extends Error {
   constructor(message, status) {
     super(message)
@@ -47,7 +49,10 @@ export const createChannel = (token, channel) =>
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(channel),
+    body: JSON.stringify({
+      ...channel,
+      name: cleanProfanity(channel.name),
+    }),
   })
 
 export const renameChannel = (token, channelId, channel) =>
@@ -56,7 +61,10 @@ export const renameChannel = (token, channelId, channel) =>
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(channel),
+    body: JSON.stringify({
+      ...channel,
+      name: cleanProfanity(channel.name),
+    }),
   })
 
 export const removeChannel = (token, channelId) =>
@@ -73,5 +81,8 @@ export const createMessage = (token, message) =>
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(message),
+    body: JSON.stringify({
+      ...message,
+      body: cleanProfanity(message.body),
+    }),
   })
