@@ -6,10 +6,12 @@ class ApiError extends Error {
   }
 }
 
-const authorizedRequest = async (path, token) => {
+const authorizedRequest = async (path, token, options = {}) => {
   const response = await fetch(path, {
+    ...options,
     headers: {
       Authorization: `Bearer ${token}`,
+      ...options.headers,
     },
   })
 
@@ -25,3 +27,12 @@ export const getChannels = (token) =>
 
 export const getMessages = (token) =>
   authorizedRequest('/api/v1/messages', token)
+
+export const createMessage = (token, message) =>
+  authorizedRequest('/api/v1/messages', token, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  })

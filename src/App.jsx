@@ -4,10 +4,10 @@ import HomePage from './pages/HomePage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
-const App = () => (
+const App = ({ socket }) => (
   <Routes>
     <Route element={<ProtectedRoute />}>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<HomePage socket={socket} />} />
     </Route>
     <Route path="/login" element={<LoginPage />} />
     <Route path="*" element={<NotFoundPage />} />

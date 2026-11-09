@@ -17,15 +17,23 @@ import {
   Title,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { getChannels, getMessages } from '../api/chatApi.js'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { createMessage, getChannels, getMessages } from '../api/chatApi.js'
 import useAuthStore from '../stores/authStore.js'
 import useChatUiStore from '../stores/chatUiStore.js'
 
 const EMPTY_LIST = []
 
-const HomePage = () => {
+const addMessageToCache = (messages = EMPTY_LIST, newMessage) => {
+  const messageExists = messages.some(({ id }) => id === newMessage.id)
+
+  return messageExists ? messages : [...messages, newMessage]
+}
+
+const HomePage = ({ socket }) => {
+  const queryClient = useQueryClient()
+  const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
   const token = useAuthStore((state) => state.token)
   const username = useAuthStore((state) => state.username)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
@@ -47,6 +55,29 @@ const HomePage = () => {
   const messageForm = useForm({
     initialValues: {
       body: '',
+    },
+    validate: {
+      body: (value) =>
+        value.trim().length === 0 ? 'Введите сообщение' : null,
+    },
+  })
+  const createMessageMutation = useMutation({
+    mutationFn: ({ body }) =>
+      createMessage(token, {
+        body,
+        channelId: currentChannelId,
+        username,
+      }),
+    onSuccess: (newMessage) => {
+      queryClient.setQueryData(['messages', token], (messages) =>
+        addMessageToCache(messages, newMessage),
+      )
+      messageForm.reset()
+    },
+    onError: (error) => {
+      if (error.status === 401) {
+        clearCredentials()
+      }
     },
   })
 
@@ -71,9 +102,41 @@ const HomePage = () => {
     )
 
     if (!currentChannelExists) {
-      setCurrentChannelId(channels[0].id)
+      const generalChannel = channels.find(
+        ({ name }) => name.toLowerCase() === 'general',
+      )
+      setCurrentChannelId((generalChannel ?? channels[0]).id)
     }
   }, [channels, currentChannelId, setCurrentChannelId])
+
+  useEffect(() => {
+    const handleNewMessage = (newMessage) => {
+      queryClient.setQueryData(['messages', token], (messages) =>
+        addMessageToCache(messages, newMessage),
+      )
+    }
+    const handleConnect = () => {
+      setIsSocketConnected(true)
+      queryClient.invalidateQueries({ queryKey: ['messages', token] })
+    }
+    const handleDisconnect = () => setIsSocketConnected(false)
+
+    socket.on('newMessage', handleNewMessage)
+    socket.on('connect', handleConnect)
+    socket.on('disconnect', handleDisconnect)
+    socket.on('connect_error', handleDisconnect)
+
+    return () => {
+      socket.off('newMessage', handleNewMessage)
+      socket.off('connect', handleConnect)
+      socket.off('disconnect', handleDisconnect)
+      socket.off('connect_error', handleDisconnect)
+    }
+  }, [queryClient, socket, token])
+
+  const handleMessageSubmit = ({ body }) => {
+    createMessageMutation.mutate({ body: body.trim() })
+  }
 
   if (channelsQuery.isPending || messagesQuery.isPending) {
     return (
@@ -151,6 +214,11 @@ const HomePage = () => {
 
       <AppShell.Main>
         <Stack h="calc(100vh - 92px)" gap="md">
+          {!isSocketConnected && (
+            <Alert color="yellow" title="Соединение потеряно">
+              Новые сообщения появятся после восстановления связи.
+            </Alert>
+          )}
           <Box>
             <Title order={3}># {currentChannel?.name ?? 'Канал'}</Title>
             <Text size="sm" c="dimmed">
@@ -178,20 +246,33 @@ const HomePage = () => {
             )}
           </ScrollArea>
 
-          <form onSubmit={messageForm.onSubmit(() => {})}>
-            <Group align="flex-end" wrap="nowrap">
-              <TextInput
-                label="Новое сообщение"
-                placeholder="Введите сообщение"
-                aria-label="Новое сообщение"
-                flex={1}
-                disabled={!currentChannel}
-                {...messageForm.getInputProps('body')}
-              />
-              <Button type="submit" disabled={!currentChannel}>
-                Отправить
-              </Button>
-            </Group>
+          <form onSubmit={messageForm.onSubmit(handleMessageSubmit)}>
+            <Stack gap="xs">
+              {createMessageMutation.isError &&
+                createMessageMutation.error?.status !== 401 && (
+                  <Alert color="red">
+                    Не удалось отправить сообщение. Текст сохранён — попробуйте
+                    ещё раз.
+                  </Alert>
+                )}
+              <Group align="flex-end" wrap="nowrap">
+                <TextInput
+                  label="Новое сообщение"
+                  placeholder="Введите сообщение"
+                  aria-label="Новое сообщение"
+                  flex={1}
+                  disabled={!currentChannel || createMessageMutation.isPending}
+                  {...messageForm.getInputProps('body')}
+                />
+                <Button
+                  type="submit"
+                  loading={createMessageMutation.isPending}
+                  disabled={!currentChannel}
+                >
+                  Отправить
+                </Button>
+              </Group>
+            </Stack>
           </form>
         </Stack>
       </AppShell.Main>
