@@ -3,10 +3,12 @@ import '@mantine/notifications/styles.css'
 import { MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import * as Sentry from '@sentry/react'
 import i18next from 'i18next'
 import { I18nextProvider, initReactI18next } from 'react-i18next'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import ErrorFallback from './components/ErrorFallback.jsx'
 import NetworkNotifications from './components/NetworkNotifications.jsx'
 import ru from './locales/ru.js'
 
@@ -43,7 +45,9 @@ const init = async (socket) => {
           <MantineProvider>
             <Notifications position="top-right" limit={4} />
             <NetworkNotifications />
-            <App socket={socket} />
+            <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+              <App socket={socket} />
+            </Sentry.ErrorBoundary>
           </MantineProvider>
         </QueryClientProvider>
       </BrowserRouter>

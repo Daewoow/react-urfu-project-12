@@ -36,3 +36,7 @@ make start
 ## Демо
 
 Ссылка на приложение в Render: <https://react-urfu-project-12-71w7.onrender.com>
+
+# Баги
+
+DSN для Buglink: <https://ca9afaedcf45443588994bce1bbfb7c7@reacthexlet.bugsink.com/1>
