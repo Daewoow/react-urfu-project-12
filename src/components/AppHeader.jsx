@@ -1,7 +1,7 @@
 import { AppShell, Button, Group, Paper, Text } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import useAuthStore from '../stores/authStore.js'
+import { useAuthStore } from '../stores/storeContext.js'
 
 const HeaderContent = () => {
   const { t } = useTranslation()

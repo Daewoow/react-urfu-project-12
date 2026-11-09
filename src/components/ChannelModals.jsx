@@ -16,8 +16,12 @@ import {
   removeChannel,
   renameChannel,
 } from '../api/chatApi.js'
-import useAuthStore from '../stores/authStore.js'
-import useChatUiStore from '../stores/chatUiStore.js'
+import {
+  useAuthStore,
+  useChatUiStore,
+  useChatUiStoreApi,
+  useNotificationStore,
+} from '../stores/storeContext.js'
 import {
   removeChannelFromCache,
   upsertChannelInCache,
@@ -64,6 +68,7 @@ const CreateChannelModal = ({ channels }) => {
   const setCurrentChannelId = useChatUiStore(
     (state) => state.setCurrentChannelId,
   )
+  const notificationStore = useNotificationStore()
   const form = useForm({
     initialValues: { name: '' },
     validate: {
@@ -76,11 +81,14 @@ const CreateChannelModal = ({ channels }) => {
       upsertChannelInCache(queryClient, token, channel)
       setCurrentChannelId(channel.id)
       closeModal()
-      notifications.show({
-        color: 'green',
-        title: t('notifications.successTitle'),
-        message: t('notifications.channelCreated', { name: channel.name }),
-      })
+      notifications.show(
+        {
+          color: 'green',
+          title: t('notifications.successTitle'),
+          message: t('notifications.channelCreated', { name: channel.name }),
+        },
+        notificationStore,
+      )
     },
     onError: (error) => {
       if (error.status === 401) {
@@ -145,6 +153,7 @@ const RenameChannelModal = ({ channel, channels }) => {
   const token = useAuthStore((state) => state.token)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
   const closeModal = useChatUiStore((state) => state.closeModal)
+  const notificationStore = useNotificationStore()
   const form = useForm({
     initialValues: { name: cleanProfanity(channel.name) },
     validate: {
@@ -156,13 +165,16 @@ const RenameChannelModal = ({ channel, channels }) => {
     onSuccess: (renamedChannel) => {
       upsertChannelInCache(queryClient, token, renamedChannel)
       closeModal()
-      notifications.show({
-        color: 'green',
-        title: t('notifications.successTitle'),
-        message: t('notifications.channelRenamed', {
-          name: renamedChannel.name,
-        }),
-      })
+      notifications.show(
+        {
+          color: 'green',
+          title: t('notifications.successTitle'),
+          message: t('notifications.channelRenamed', {
+            name: renamedChannel.name,
+          }),
+        },
+        notificationStore,
+      )
     },
     onError: (error) => {
       if (error.status === 401) {
@@ -226,18 +238,23 @@ const DeleteChannelModal = ({ channel }) => {
   const token = useAuthStore((state) => state.token)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
   const closeModal = useChatUiStore((state) => state.closeModal)
+  const chatUiStore = useChatUiStoreApi()
+  const notificationStore = useNotificationStore()
   const mutation = useMutation({
     mutationFn: () => removeChannel(token, channel.id),
     onSuccess: ({ id }) => {
-      removeChannelFromCache(queryClient, token, id)
+      removeChannelFromCache(queryClient, token, id, chatUiStore)
       closeModal()
-      notifications.show({
-        color: 'green',
-        title: t('notifications.successTitle'),
-        message: t('notifications.channelDeleted', {
-          name: cleanProfanity(channel.name),
-        }),
-      })
+      notifications.show(
+        {
+          color: 'green',
+          title: t('notifications.successTitle'),
+          message: t('notifications.channelDeleted', {
+            name: cleanProfanity(channel.name),
+          }),
+        },
+        notificationStore,
+      )
     },
     onError: (error) => {
       if (error.status === 401) {

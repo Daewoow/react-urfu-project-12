@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader.jsx'
-import useAuthStore from '../stores/authStore.js'
+import { useAuthStore } from '../stores/storeContext.js'
 
 const LoginPage = () => {
   const { t } = useTranslation()
@@ -90,7 +90,7 @@ const LoginPage = () => {
                 </Alert>
               )}
               <TextInput
-                label={t('auth.username.label')}
+                label={t('auth.login.usernameLabel')}
                 placeholder={t('auth.username.placeholder')}
                 autoComplete="username"
                 required

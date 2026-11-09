@@ -1,5 +1,3 @@
-import useChatUiStore from '../stores/chatUiStore.js'
-
 const upsertById = (items = [], nextItem) => {
   const itemExists = items.some(({ id }) => id === nextItem.id)
 
@@ -22,7 +20,12 @@ export const upsertChannelInCache = (queryClient, token, channel) => {
   )
 }
 
-export const removeChannelFromCache = (queryClient, token, channelId) => {
+export const removeChannelFromCache = (
+  queryClient,
+  token,
+  channelId,
+  chatUiStore,
+) => {
   let remainingChannels = []
 
   queryClient.setQueryData(['channels', token], (channels = []) => {
@@ -33,7 +36,7 @@ export const removeChannelFromCache = (queryClient, token, channelId) => {
     messages.filter((message) => message.channelId !== channelId),
   )
 
-  const uiState = useChatUiStore.getState()
+  const uiState = chatUiStore.getState()
 
   if (uiState.currentChannelId === channelId) {
     const generalChannel = remainingChannels.find(

@@ -11,12 +11,12 @@ const ru = {
     notifications: {
       successTitle: 'Готово',
       errorTitle: 'Ошибка',
-      networkTitle: 'Нет соединения',
+      networkTitle: 'Ошибка соединения',
       networkError: 'Проверьте подключение к интернету.',
       loadError: 'Не удалось загрузить данные чата.',
-      channelCreated: 'Канал # {{name}} создан',
-      channelRenamed: 'Канал переименован в # {{name}}',
-      channelDeleted: 'Канал # {{name}} удалён',
+      channelCreated: 'Канал создан',
+      channelRenamed: 'Канал переименован',
+      channelDeleted: 'Канал удалён',
     },
     auth: {
       username: {
@@ -31,6 +31,7 @@ const ru = {
       login: {
         title: 'Войти',
         submit: 'Войти',
+        usernameLabel: 'Ваш ник',
         errorTitle: 'Ошибка авторизации',
         invalidCredentials: 'Неверные имя пользователя или пароль',
         requestError:
@@ -46,7 +47,7 @@ const ru = {
           'Не удалось зарегистрироваться. Проверьте подключение и попробуйте ещё раз',
         usernamePlaceholder: 'От 3 до 20 символов',
         passwordPlaceholder: 'Не менее 6 символов',
-        passwordConfirmationLabel: 'Подтверждение пароля',
+        passwordConfirmationLabel: 'Подтвердите пароль',
         passwordConfirmationPlaceholder: 'Повторите пароль',
         usernameConflict: 'Пользователь с таким именем уже существует',
         hasAccount: 'Уже есть аккаунт?',
@@ -64,7 +65,7 @@ const ru = {
       loading: 'Загрузка чата',
       loadErrorTitle: 'Не удалось загрузить чат',
       loadErrorText: 'Проверьте подключение и попробуйте ещё раз.',
-      connectionLostTitle: 'Соединение потеряно',
+      connectionLostTitle: 'Ошибка соединения',
       connectionLostText:
         'Новые сообщения появятся после восстановления связи.',
       channelFallback: 'Канал',
@@ -82,8 +83,8 @@ const ru = {
     channels: {
       title: 'Каналы',
       label: '# {{name}}',
-      addAction: 'Добавить канал',
-      manageAction: 'Управление каналом {{name}}',
+      addAction: '+',
+      manageAction: 'Управление каналом',
       renameAction: 'Переименовать',
       deleteAction: 'Удалить',
       nameLabel: 'Имя канала',

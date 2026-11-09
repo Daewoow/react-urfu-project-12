@@ -26,8 +26,12 @@ import { useTranslation } from 'react-i18next'
 import { createMessage, getChannels, getMessages } from '../api/chatApi.js'
 import AppHeader from '../components/AppHeader.jsx'
 import ChannelModals from '../components/ChannelModals.jsx'
-import useAuthStore from '../stores/authStore.js'
-import useChatUiStore from '../stores/chatUiStore.js'
+import {
+  useAuthStore,
+  useChatUiStore,
+  useChatUiStoreApi,
+  useNotificationStore,
+} from '../stores/storeContext.js'
 import {
   removeChannelFromCache,
   upsertChannelInCache,
@@ -49,6 +53,8 @@ const HomePage = ({ socket }) => {
     (state) => state.setCurrentChannelId,
   )
   const openModal = useChatUiStore((state) => state.openModal)
+  const chatUiStore = useChatUiStoreApi()
+  const notificationStore = useNotificationStore()
 
   const channelsQuery = useQuery({
     queryKey: ['channels', token],
@@ -101,16 +107,19 @@ const HomePage = ({ socket }) => {
 
   useEffect(() => {
     if (hasLoadError && !isUnauthorized) {
-      notifications.show({
-        id: 'chat-load-error',
-        color: 'red',
-        title: t('notifications.errorTitle'),
-        message: t('notifications.loadError'),
-      })
+      notifications.show(
+        {
+          id: 'chat-load-error',
+          color: 'red',
+          title: t('notifications.errorTitle'),
+          message: t('notifications.loadError'),
+        },
+        notificationStore,
+      )
     } else {
-      notifications.hide('chat-load-error')
+      notifications.hide('chat-load-error', notificationStore)
     }
-  }, [hasLoadError, isUnauthorized, t])
+  }, [hasLoadError, isUnauthorized, notificationStore, t])
 
   useEffect(() => {
     if (channels.length === 0) {
@@ -138,7 +147,7 @@ const HomePage = ({ socket }) => {
     const handleRenameChannel = (channel) =>
       upsertChannelInCache(queryClient, token, channel)
     const handleRemoveChannel = ({ id }) =>
-      removeChannelFromCache(queryClient, token, id)
+      removeChannelFromCache(queryClient, token, id, chatUiStore)
     const handleConnect = () => {
       setIsSocketConnected(true)
       queryClient.invalidateQueries({ queryKey: ['channels', token] })
@@ -163,7 +172,7 @@ const HomePage = ({ socket }) => {
       socket.off('disconnect', handleDisconnect)
       socket.off('connect_error', handleDisconnect)
     }
-  }, [queryClient, socket, token])
+  }, [chatUiStore, queryClient, socket, token])
 
   const handleMessageSubmit = ({ body }) => {
     createMessageMutation.mutate({ body: body.trim() })

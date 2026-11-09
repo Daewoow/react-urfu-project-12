@@ -1,7 +1,7 @@
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
 import { MantineProvider } from '@mantine/core'
-import { Notifications } from '@mantine/notifications'
+import { createNotificationsStore, Notifications } from '@mantine/notifications'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as Sentry from '@sentry/react'
 import i18next from 'i18next'
@@ -11,6 +11,9 @@ import App from './App.jsx'
 import ErrorFallback from './components/ErrorFallback.jsx'
 import NetworkNotifications from './components/NetworkNotifications.jsx'
 import ru from './locales/ru.js'
+import StoreProvider from './stores/StoreProvider.jsx'
+import { createAuthStore } from './stores/authStore.js'
+import { createChatUiStore } from './stores/chatUiStore.js'
 
 const init = async (socket) => {
   const i18n = i18next.createInstance()
@@ -28,6 +31,10 @@ const init = async (socket) => {
   })
   document.title = i18n.t('app.title')
 
+  const authStore = createAuthStore()
+  const chatUiStore = createChatUiStore()
+  const notificationStore = createNotificationsStore()
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -42,13 +49,23 @@ const init = async (socket) => {
     <I18nextProvider i18n={i18n}>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <MantineProvider>
-            <Notifications position="top-right" limit={4} />
-            <NetworkNotifications />
-            <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-              <App socket={socket} />
-            </Sentry.ErrorBoundary>
-          </MantineProvider>
+          <StoreProvider
+            authStore={authStore}
+            chatUiStore={chatUiStore}
+            notificationStore={notificationStore}
+          >
+            <MantineProvider>
+              <Notifications
+                store={notificationStore}
+                position="top-right"
+                limit={4}
+              />
+              <NetworkNotifications />
+              <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+                <App socket={socket} />
+              </Sentry.ErrorBoundary>
+            </MantineProvider>
+          </StoreProvider>
         </QueryClientProvider>
       </BrowserRouter>
     </I18nextProvider>

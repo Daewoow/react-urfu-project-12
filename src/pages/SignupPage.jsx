@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/chatApi.js'
 import AppHeader from '../components/AppHeader.jsx'
-import useAuthStore from '../stores/authStore.js'
+import { useAuthStore } from '../stores/storeContext.js'
 
 const combineValidators = (...validators) => (value, values, path) => {
   for (const validator of validators) {
