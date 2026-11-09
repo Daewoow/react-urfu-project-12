@@ -19,6 +19,7 @@ import {
   Title,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { notifications } from '@mantine/notifications'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -89,12 +90,26 @@ const HomePage = ({ socket }) => {
   const messages = messagesQuery.data ?? EMPTY_LIST
   const isUnauthorized =
     channelsQuery.error?.status === 401 || messagesQuery.error?.status === 401
+  const hasLoadError = channelsQuery.isError || messagesQuery.isError
 
   useEffect(() => {
     if (isUnauthorized) {
       clearCredentials()
     }
   }, [clearCredentials, isUnauthorized])
+
+  useEffect(() => {
+    if (hasLoadError && !isUnauthorized) {
+      notifications.show({
+        id: 'chat-load-error',
+        color: 'red',
+        title: t('notifications.errorTitle'),
+        message: t('notifications.loadError'),
+      })
+    } else {
+      notifications.hide('chat-load-error')
+    }
+  }, [hasLoadError, isUnauthorized, t])
 
   useEffect(() => {
     if (channels.length === 0) {

@@ -8,6 +8,16 @@ const ru = {
       retry: 'Повторить',
       requestError: 'Не удалось выполнить запрос. Попробуйте ещё раз.',
     },
+    notifications: {
+      successTitle: 'Готово',
+      errorTitle: 'Ошибка',
+      networkTitle: 'Нет соединения',
+      networkError: 'Проверьте подключение к интернету.',
+      loadError: 'Не удалось загрузить данные чата.',
+      channelCreated: 'Канал # {{name}} создан',
+      channelRenamed: 'Канал переименован в # {{name}}',
+      channelDeleted: 'Канал # {{name}} удалён',
+    },
     auth: {
       username: {
         label: 'Имя пользователя',

@@ -8,6 +8,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -74,6 +75,11 @@ const CreateChannelModal = ({ channels }) => {
       upsertChannelInCache(queryClient, token, channel)
       setCurrentChannelId(channel.id)
       closeModal()
+      notifications.show({
+        color: 'green',
+        title: t('notifications.successTitle'),
+        message: t('notifications.channelCreated', { name: channel.name }),
+      })
     },
     onError: (error) => {
       if (error.status === 401) {
@@ -149,6 +155,13 @@ const RenameChannelModal = ({ channel, channels }) => {
     onSuccess: (renamedChannel) => {
       upsertChannelInCache(queryClient, token, renamedChannel)
       closeModal()
+      notifications.show({
+        color: 'green',
+        title: t('notifications.successTitle'),
+        message: t('notifications.channelRenamed', {
+          name: renamedChannel.name,
+        }),
+      })
     },
     onError: (error) => {
       if (error.status === 401) {
@@ -217,6 +230,11 @@ const DeleteChannelModal = ({ channel }) => {
     onSuccess: ({ id }) => {
       removeChannelFromCache(queryClient, token, id)
       closeModal()
+      notifications.show({
+        color: 'green',
+        title: t('notifications.successTitle'),
+        message: t('notifications.channelDeleted', { name: channel.name }),
+      })
     },
     onError: (error) => {
       if (error.status === 401) {
