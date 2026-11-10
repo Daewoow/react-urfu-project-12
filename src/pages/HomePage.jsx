@@ -246,13 +246,17 @@ const HomePage = ({ socket }) => {
         <ScrollArea flex={1}>
           <Stack gap={4}>
             {channels.map((channel) => {
+              const channelName = cleanProfanity(channel.name)
+              const channelLabel = t('channels.label', {
+                name: channelName,
+              })
               const channelLink = (
                 <NavLink
                   component="button"
                   type="button"
-                  label={t('channels.label', {
-                    name: cleanProfanity(channel.name),
-                  })}
+                  aria-label={channelLabel}
+                  leftSection="#"
+                  label={channelName}
                   active={channel.id === currentChannelId}
                   onClick={() => setCurrentChannelId(channel.id)}
                   styles={{
