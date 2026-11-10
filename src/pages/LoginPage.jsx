@@ -100,6 +100,7 @@ const LoginPage = () => {
               />
               <PasswordInput
                 label={t('auth.password.label')}
+                aria-label={t('auth.password.label')}
                 placeholder={t('auth.password.placeholder')}
                 autoComplete="current-password"
                 required

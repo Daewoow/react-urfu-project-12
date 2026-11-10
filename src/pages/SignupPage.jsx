@@ -123,6 +123,7 @@ const SignupPage = () => {
               />
               <PasswordInput
                 label={t('auth.password.label')}
+                aria-label={t('auth.password.label')}
                 placeholder={t('auth.signup.passwordPlaceholder')}
                 autoComplete="new-password"
                 required
@@ -131,6 +132,7 @@ const SignupPage = () => {
               />
               <PasswordInput
                 label={t('auth.signup.passwordConfirmationLabel')}
+                aria-label={t('auth.signup.passwordConfirmationLabel')}
                 placeholder={t('auth.signup.passwordConfirmationPlaceholder')}
                 autoComplete="new-password"
                 required
