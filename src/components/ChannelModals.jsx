@@ -41,7 +41,7 @@ const validateChannelName = (
   }
 
   if (name.length > 20) {
-    return t('channels.validation.maxLength')
+    return t('channels.validation.length')
   }
 
   const nameExists = channels.some(
@@ -123,7 +123,6 @@ const CreateChannelModal = ({ channels }) => {
           <TextInput
             label={t('channels.nameLabel')}
             placeholder={t('channels.namePlaceholder')}
-            maxLength={20}
             autoFocus
             disabled={mutation.isPending}
             {...form.getInputProps('name')}
@@ -208,7 +207,6 @@ const RenameChannelModal = ({ channel, channels }) => {
           )}
           <TextInput
             label={t('channels.nameLabel')}
-            maxLength={20}
             autoFocus
             disabled={mutation.isPending}
             {...form.getInputProps('name')}

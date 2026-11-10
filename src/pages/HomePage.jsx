@@ -248,6 +248,8 @@ const HomePage = ({ socket }) => {
             {channels.map((channel) => {
               const channelLink = (
                 <NavLink
+                  component="button"
+                  type="button"
                   label={t('channels.label', {
                     name: cleanProfanity(channel.name),
                   })}

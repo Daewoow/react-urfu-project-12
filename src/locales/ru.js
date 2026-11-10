@@ -49,7 +49,7 @@ const ru = {
         passwordPlaceholder: 'Не менее 6 символов',
         passwordConfirmationLabel: 'Подтвердите пароль',
         passwordConfirmationPlaceholder: 'Повторите пароль',
-        usernameConflict: 'Пользователь с таким именем уже существует',
+        usernameConflict: 'Такой пользователь уже существует',
         hasAccount: 'Уже есть аккаунт?',
         loginLink: 'Войти',
       },
